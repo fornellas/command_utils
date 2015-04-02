@@ -13,7 +13,7 @@ require 'command_utils'
 
 puts 'Execute command and send output to block:'
 command = 'echo -n stdout message ; echo -n stderr message 1>&2'
-CommandUtils.each_output(command) do |stream, data|
+CommandUtils.each_line(command) do |stream, data|
   puts "#{stream}: #{data}"
 end
 puts
