@@ -68,6 +68,55 @@ RSpec.describe CommandUtils do
 
   end
 
+  context '#each_line' do
+
+    it 'calls command with Process#spawn' do
+      command = 'true'
+      expect(Process).to receive(:spawn).with(command, any_args).and_call_original
+      CommandUtils.new(command).each_line{}
+    end
+
+    it 'yields stdout' do
+      c = CommandUtils.new('echo "line1\nline2"')
+      expect do |b|
+        c.each_line(&b)
+      end.to yield_successive_args(
+        [:stdout, "line1"],
+        [:stdout, "line2"],
+        )
+    end
+
+    it 'yields stderr' do
+      c = CommandUtils.new('echo "line1\nline2" 1>&2')
+      expect do |b|
+        c.each_line(&b)
+      end.to yield_successive_args(
+        [:stderr, "line1"],
+        [:stderr, "line2"],
+        )
+    end
+
+    it 'yields both stdout and stderr' do
+      c = CommandUtils.new('echo "line1\nline2" ; echo "line1\nline2" 1>&2')
+
+      expect do |b|
+        c.each_line(&b)
+      end.to yield_successive_args(
+        [:stdout, "line1"],
+        [:stdout, "line2"],
+        [:stderr, "line1"],
+        [:stderr, "line2"],
+        )
+    end
+
+    it 'raises if non 0 return' do
+      c = CommandUtils.new('exit 1')
+      expect do
+        c.each_line{}
+      end.to raise_error(CommandUtils::NonZeroStatus)
+    end
+  end
+
   context '#logger_exec' do
 
     let(:logger){instance_double(Logger)}

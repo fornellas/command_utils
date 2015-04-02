@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'command_utils'
-  s.version     = '0.1.0'
+  s.version     = '0.2.0'
   s.summary     = "Simple Gem to assist running external commands an processing its outputs."
   s.description = "This Gem will help you call external commands, process its stdout and stderr, to your own fit, and at the end, validate its return code."
   s.authors     = ["Fabio Pugliese Ornellas"]
