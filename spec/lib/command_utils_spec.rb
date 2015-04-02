@@ -117,6 +117,18 @@ RSpec.describe CommandUtils do
     end
   end
 
+  context '::each_line' do
+
+    it 'calls #each_line' do
+      command = 'true'
+      block = proc{}
+      expect_any_instance_of(CommandUtils).to receive(:initialize).with(command)
+      expect_any_instance_of(CommandUtils).to receive(:each_line).with(no_args, &block)
+      CommandUtils.each_line(command, &block)
+    end
+
+  end
+
   context '#logger_exec' do
 
     let(:logger){instance_double(Logger)}
