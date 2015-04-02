@@ -3,6 +3,18 @@ require 'logger'
 
 RSpec.describe CommandUtils do
 
+  context '#initialize' do
+
+    it 'yields self if block given' do
+      yielded_argument = nil
+      returned_command_util = CommandUtils.new('true') do |block_command_uitl|
+        yielded_argument = block_command_uitl
+      end
+      expect(yielded_argument).to eq(returned_command_util)
+    end
+
+  end
+
   context '#each_output' do
 
     it 'calls command with Process#spawn' do
@@ -40,6 +52,18 @@ RSpec.describe CommandUtils do
       expect do
         c.each_output{}
       end.to raise_error(CommandUtils::NonZeroStatus)
+    end
+
+  end
+
+  context '::each_output' do
+
+    it 'calls #each_output' do
+      command = 'true'
+      block = proc{}
+      expect_any_instance_of(CommandUtils).to receive(:initialize).with(command)
+      expect_any_instance_of(CommandUtils).to receive(:each_output).with(no_args, &block)
+      CommandUtils.each_output(command, &block)
     end
 
   end
@@ -111,7 +135,24 @@ RSpec.describe CommandUtils do
 
   end
 
+  context '::logger_exec' do
+
+    it "calls #logger_exec" do
+      command = 'true'
+      options = {
+        logger: instance_double(Logger),
+        stdout_level: :info,
+        stderr_level: :error,
+        }
+      expect_any_instance_of(CommandUtils).to receive(:initialize).with(command)
+      expect_any_instance_of(CommandUtils).to receive(:logger_exec).with(options)
+      CommandUtils.logger_exec(command, options)
+    end
+
+  end
+
   # context '#string_exec' do
   #   it 'returns hash with status, stdout and stderr'
   # end
+
 end

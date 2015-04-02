@@ -4,9 +4,10 @@ require_relative 'command_utils/non_zero_status'
 # All methods which execute given command, raise NonZeroStatus if its return is not 0.
 class CommandUtils
 
-  # Takes command in same format supported by Process#spawn
+  # Takes command in same format supported by Process#spawn.
   def initialize *command
     @command = command
+    yield self if block_given?
   end
 
   # Execute command, yielding to given block, each time there is output.
@@ -34,6 +35,14 @@ class CommandUtils
     end
   end
 
+  # Takes command in same format supported by Process#spawn.
+  # Execute command, yielding to given block, each time there is output.
+  # stream:: either +:stdout+ or +:stderr+.
+  # data:: data read from respective stream.
+  def self.each_output *command, &block # :yields: stream, data
+    self.new(*command).each_output(&block)
+  end
+
   # Execute command, logging its output to given Logger object.
   # Must receive a hash, containing at least:
   # +:logger+:: Logger instance.
@@ -49,6 +58,19 @@ class CommandUtils
       prefix = options["#{stream}_prefix".to_sym]
       logger.send(level, "#{prefix}#{data}")
     end
+  end
+
+  # Takes command in same format supported by Process#spawn.
+  # Execute command, logging its output to given Logger object.
+  # Must receive a hash, containing at least:
+  # +:logger+:: Logger instance.
+  # +:stdout_level+:: Logger level to log stdout.
+  # +:stderr_level+:: Logger level to log stderr.
+  # and optionally:
+  # +:stdout_prefix+:: Prefix to use for all stdout messages.
+  # +:stderr_prefix+:: Prefix to use for all stderr messages.
+  def self.logger_exec command, options
+    self.new(command).logger_exec(options)
   end
 
   private
