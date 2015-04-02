@@ -10,9 +10,9 @@ class CommandUtils
   end
 
   # Execute command, yielding to given block, each time there is output.
-  # label:: either +:stdout+ or +:stderr+.
+  # stream:: either +:stdout+ or +:stderr+.
   # data:: data read from respective stream.
-  def each_output # :yields: label, data
+  def each_output # :yields: stream, data
     run do
       loop do
         io_list = [@stdout_read, @stderr_read].keep_if{|io| not io.closed?}
@@ -31,6 +31,23 @@ class CommandUtils
           yield label, io.read
         end
       end
+    end
+  end
+
+  # Execute command, logging its output to given Logger object.
+  # Must receive a hash, containing at least:
+  # +:logger+:: Logger instance.
+  # +:stdout_level+:: Logger level to log stdout.
+  # +:stderr_level+:: Logger level to log stderr.
+  # and optionally:
+  # +:stdout_prefix+:: Prefix to use for all stdout messages.
+  # +:stderr_prefix+:: Prefix to use for all stderr messages.
+  def logger_exec options
+    logger = options[:logger]
+    each_output do |stream, data|
+      level = options["#{stream}_level".to_sym]
+      prefix = options["#{stream}_prefix".to_sym]
+      logger.send(level, "#{prefix}#{data}")
     end
   end
 
