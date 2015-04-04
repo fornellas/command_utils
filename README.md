@@ -6,8 +6,6 @@ This Gem will help you call external commands, process its stdout and stderr, to
 
 # Example
 
-## Processing output
-
 ```ruby
 require 'command_utils'
 
