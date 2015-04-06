@@ -9,14 +9,14 @@ This Gem will help you call external commands, process its stdout and stderr, to
 ```ruby
 require 'command_utils'
 
-puts 'Execute command and send output to block:'
+puts 'Execute command and send line buffered output to block:'
 command = 'echo -n stdout message ; echo -n stderr message 1>&2'
 CommandUtils.each_line(command) do |stream, data|
   puts "#{stream}: #{data}"
 end
 puts
 
-puts 'Execute command and send output to given logger instance:'
+puts 'Execute command and send line buffered output to given logger instance:'
 require 'logger'
 command = 'echo -n stdout message ; echo -n stderr message 1>&2'
 CommandUtils.logger_exec(
