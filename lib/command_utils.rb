@@ -5,9 +5,22 @@ require_relative 'command_utils/line_buffer'
 # All methods which execute given command, raise NonZeroStatus if its return is not 0.
 class CommandUtils
 
+  #  call-seq:
+  #    new([env,] command...)
+  #
   # Takes command in same format supported by Process#spawn.
-  def initialize *command
-    @command = command
+  def initialize *args
+    first = args.first
+    if first.kind_of? Hash
+      @env = args.shift
+      @command = args
+    elsif first.respond_to? :to_hash
+      @env = args.shift.to_hash
+      @command = args
+    else
+      @env = nil
+      @command = args
+    end
     yield self if block_given?
   end
 
@@ -36,9 +49,12 @@ class CommandUtils
     end
   end
 
+  #  call-seq:
+  #    each_output([env,] command...) { |stream, data| ... }
+  #
   # Wrapper for CommandUtils#each_output
-  def self.each_output *command, &block # :yields: stream, data
-    self.new(*command).each_output(&block)
+  def self.each_output *args, &block # :yields: stream, data
+    self.new(*args).each_output(&block)
   end
 
   # Execute command, yielding to given block, each time there is a new line available.
@@ -67,9 +83,12 @@ class CommandUtils
     stderr_lb.flush
   end
 
+  #  call-seq:
+  #    each_line([env,] command...) { |stream, data| ... }
+  #
   # Wrapper for CommandUtils#each_line
-  def self.each_line *command, &block # :yields: stream, data
-    self.new(*command).each_line(&block)
+  def self.each_line *args, &block # :yields: stream, data
+    self.new(*args).each_line(&block)
   end
 
   # Execute command, logging its output, line buffered, to given Logger object.
@@ -88,9 +107,12 @@ class CommandUtils
     end
   end
 
+  #  call-seq:
+  #    logger_exec([env,] command..., options)
+  #
   # Wrapper for CommandUtils@logger_exec
-  def self.logger_exec command, options
-    self.new(command).logger_exec(options)
+  def self.logger_exec *args, options
+    self.new(*args).logger_exec(options)
   end
 
   private
@@ -104,8 +126,13 @@ class CommandUtils
   def spawn
     @stdout_read, @stdout_write = IO.pipe
     @stderr_read, @stderr_write = IO.pipe
+    spawn_args = if @env
+      [@env] + @command
+    else
+      @command
+    end
     @pid = Process.spawn(
-      *@command,
+      *spawn_args,
       in: :close,
       out: @stdout_write.fileno,
       err: @stderr_write.fileno,

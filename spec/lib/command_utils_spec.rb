@@ -2,7 +2,6 @@ require 'command_utils'
 require 'logger'
 
 RSpec.describe CommandUtils do
-
   context '#initialize' do
 
     it 'yields self if block given' do
@@ -17,10 +16,11 @@ RSpec.describe CommandUtils do
 
   context '#each_output' do
 
-    it 'calls command with Process#spawn' do
+    it 'calls command with #spawn' do
       command = 'true'
-      expect(Process).to receive(:spawn).with(command, any_args).and_call_original
-      CommandUtils.new(command).each_output{}
+      instance = CommandUtils.new(command)
+      expect(instance).to receive(:spawn).with(no_args).and_call_original
+      instance.each_output{}
     end
 
     it 'yields stdout' do
@@ -61,8 +61,9 @@ RSpec.describe CommandUtils do
     it 'calls #each_output' do
       command = 'true'
       block = proc{}
-      expect_any_instance_of(CommandUtils).to receive(:initialize).with(command)
-      expect_any_instance_of(CommandUtils).to receive(:each_output).with(no_args, &block)
+      command_utils_instance_double = instance_double('CommandUtils')
+      expect(command_utils_instance_double).to receive(:each_output).with(no_args, &block)
+      expect(CommandUtils).to receive(:new).with(command).and_return(command_utils_instance_double)
       CommandUtils.each_output(command, &block)
     end
 
@@ -70,10 +71,11 @@ RSpec.describe CommandUtils do
 
   context '#each_line' do
 
-    it 'calls command with Process#spawn' do
+    it 'calls command with #spawn' do
       command = 'true'
-      expect(Process).to receive(:spawn).with(command, any_args).and_call_original
-      CommandUtils.new(command).each_line{}
+      instance = CommandUtils.new(command)
+      expect(instance).to receive(:spawn).with(no_args).and_call_original
+      instance.each_line{}
     end
 
     it 'yields stdout' do
@@ -122,8 +124,9 @@ RSpec.describe CommandUtils do
     it 'calls #each_line' do
       command = 'true'
       block = proc{}
-      expect_any_instance_of(CommandUtils).to receive(:initialize).with(command)
-      expect_any_instance_of(CommandUtils).to receive(:each_line).with(no_args, &block)
+      command_utils_instance_double = instance_double('CommandUtils')
+      expect(command_utils_instance_double).to receive(:each_line).with(no_args, &block)
+      expect(CommandUtils).to receive(:new).with(command).and_return(command_utils_instance_double)
       CommandUtils.each_line(command, &block)
     end
 
@@ -133,10 +136,11 @@ RSpec.describe CommandUtils do
 
     let(:logger){instance_double(Logger)}
 
-    it 'calls command with Process#spawn' do
+    it 'calls command with #spawn' do
       command = 'true'
-      expect(Process).to receive(:spawn).with(command, any_args).and_call_original
-      CommandUtils.new(command).logger_exec(
+      instance = CommandUtils.new(command)
+      expect(instance).to receive(:spawn).with(no_args).and_call_original
+      instance.logger_exec(
         logger: logger,
         stdout_level: :info,
         stderr_level: :error,
@@ -205,15 +209,35 @@ RSpec.describe CommandUtils do
         stdout_level: :info,
         stderr_level: :error,
         }
-      expect_any_instance_of(CommandUtils).to receive(:initialize).with(command)
-      expect_any_instance_of(CommandUtils).to receive(:logger_exec).with(options)
+      command_utils_instance_double = instance_double('CommandUtils')
+      expect(command_utils_instance_double).to receive(:logger_exec).with(options)
+      expect(CommandUtils).to receive(:new).with(command).and_return(command_utils_instance_double)
       CommandUtils.logger_exec(command, options)
     end
 
   end
 
-  # context '#string_exec' do
-  #   it 'returns hash with status, stdout and stderr'
-  # end
+  context 'Private methods' do
+
+    context '#spawn' do
+
+      it 'calls Process#spawn without environment' do
+        command = 'true'
+        instance = CommandUtils.new(command)
+        expect(Process).to receive(:spawn).with(command, any_args).and_call_original
+        instance.each_output{|stream,data|}
+      end
+
+      it 'calls Process#spawn with environment' do
+        env = {'var' => 'value'}
+        command = 'true'
+        instance = CommandUtils.new(env, command)
+        expect(Process).to receive(:spawn).with(env, command, any_args).and_call_original
+        instance.each_output{|stream,data|}
+      end
+
+    end
+
+  end
 
 end
