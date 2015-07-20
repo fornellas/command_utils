@@ -65,8 +65,8 @@ PLATFORMS
 DEPENDENCIES
   command_utils!
   guard-rdoc (~> 1.0, >= 1.0.3)
-  guard-rspec (~> 4.5)
-  rspec (~> 3.2)
+  guard-rspec (~> 4.6)
+  rspec (~> 3.3)
 
 BUNDLED WITH
    1.10.5

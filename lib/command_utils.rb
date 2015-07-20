@@ -1,8 +1,6 @@
-require_relative 'command_utils/non_zero_status'
 require_relative 'command_utils/line_buffer'
 
 # Class to assist calling external commands, while processing its output and return code.
-# If command does not exit with 0, an exception is raised.
 class CommandUtils
 
   #  call-seq:
@@ -21,7 +19,6 @@ class CommandUtils
       @env = nil
       @command = args
     end
-    @pid = nil
     yield self if block_given?
   end
 
@@ -29,11 +26,24 @@ class CommandUtils
   # stream:: either +:stdout+ or +:stderr+.
   # data:: data read from respective stream.
   def each_output &block # :yields: stream, data
-    begin
-      spawn
-      process_output &block
-    ensure
-      get_status
+    run do
+      loop do
+        io_list = [@stdout_read, @stderr_read].keep_if{|io| not io.closed?}
+        break if io_list.empty?
+        IO.select(io_list).first.each do |io|
+          if io.eof?
+            io.close
+            next
+          end
+          label = case io
+          when @stdout_read
+            :stdout
+          when @stderr_read
+            :stderr
+          end
+          yield label, io.read
+        end
+      end
     end
   end
 
@@ -105,6 +115,14 @@ class CommandUtils
 
   private
 
+  # Spawn a new process, yield given block, then process its status.
+  def run
+    spawn
+    yield
+    process_status
+  end
+
+  # Process.spawn a new process.
   def spawn
     @stdout_read, @stdout_write = IO.pipe
     @stderr_read, @stderr_write = IO.pipe
@@ -124,39 +142,46 @@ class CommandUtils
     @stderr_write.close
   end
 
-  def process_output
-    loop do
-      io_list = [@stdout_read, @stderr_read].keep_if{|io| not io.closed?}
-      break if io_list.empty?
-      IO.select(io_list).first.each do |io|
-        if io.eof?
-          io.close
-          next
-        end
-        label = case io
-        when @stdout_read
-          :stdout
-        when @stderr_read
-          :stderr
-        end
-        yield label, io.read
-      end
+  # Parent class for all status errors.
+  class StatusError < StandardError
+    # Process::Status
+    attr_accessor :status
+    # Command as passed to Process#spawn
+    attr_accessor :command
+    def initialize message, status, command
+      super message
+      @status, @command = status, command
     end
   end
 
-  def get_status
-    return unless @pid
-    Process.wait @pid
-    begin
-      unless (status = $?.exitstatus) == 0
-        raise NonZeroStatus.new(
-          "Command exited with #{status}.",
-          status,
-          @command
-          )
+  # Raised when process exited with non zero status.
+  class NonZeroExit < StatusError ; end
+  # Raised when process was signaled.
+  class Signaled < StatusError ; end
+  # Raised when process was stopped.
+  class Stopped < StatusError ; end
+  # Raised when process exited with unknown status.
+  class Unknown < StatusError ; end
+
+  # Wait for process termination, then process its status.
+  def process_status
+    flags = Process::WNOHANG|Process::WUNTRACED
+    pid, status = Process.wait2(@pid, flags)
+    if status.exited?
+      unless status.exitstatus == 0
+        message = "Command exited with #{status.exitstatus}."
+        raise NonZeroExit.new(message, status, @command)
       end
-    ensure
-      @pid = nil
+    elsif status.signaled?
+      message = "Command was signaled with #{status.termsig}."
+      message += " Core dump generated." if status.coredump?
+      raise Signaled.new(message, status, @command)
+    elsif status.stopped?
+      message = "Command was stopped with signal #{status.stopsig}."
+      raise Stopped.new(message, status, @command)
+    else
+      message = "Unknown return status."
+      raise Unknown.new(message, status, @command)
     end
   end
 
