@@ -3,6 +3,9 @@ require_relative 'command_utils/line_buffer'
 # Class to assist calling external commands, while processing its output and return code.
 class CommandUtils
 
+  # PID of currently running process.
+  attr_reader :pid
+
   #  call-seq:
   #    new([env,] command...)
   #
@@ -22,29 +25,30 @@ class CommandUtils
     yield self if block_given?
   end
 
-  # Execute command, yielding to given block, each time there is output available (not line buffered).
+  # Execute command, yielding to given block, each time there is output available (not line buffered):
   # stream:: either +:stdout+ or +:stderr+.
   # data:: data read from respective stream.
+  # Raises CommandUtils::StatusError class exception if command execution is not successfull.
   def each_output &block # :yields: stream, data
-    run do
-      loop do
-        io_list = [@stdout_read, @stderr_read].keep_if{|io| not io.closed?}
-        break if io_list.empty?
-        IO.select(io_list).first.each do |io|
-          if io.eof?
-            io.close
-            next
-          end
-          label = case io
-          when @stdout_read
-            :stdout
-          when @stderr_read
-            :stderr
-          end
-          yield label, io.read
+    spawn
+    loop do
+      io_list = [@stdout_read, @stderr_read].keep_if{|io| not io.closed?}
+      break if io_list.empty?
+      IO.select(io_list).first.each do |io|
+        if io.eof?
+          io.close
+          next
         end
+        label = case io
+        when @stdout_read
+          :stdout
+        when @stderr_read
+          :stderr
+        end
+        yield label, io.read
       end
     end
+    process_status
   end
 
   #  call-seq:
@@ -55,9 +59,10 @@ class CommandUtils
     self.new(*args).each_output(&block)
   end
 
-  # Execute command, yielding to given block, each time there is a new line available (does line buffering).
+  # Execute command, yielding to given block, each time there is a new line available (does line buffering):
   # stream:: either +:stdout+ or +:stderr+.
   # data:: data read from respective stream.
+  # Raises CommandUtils::StatusError class exception if command execution is not successfull.
   def each_line &block # :yields: stream, data
     stdout_lb = LineBuffer.new(
       proc do |data|
@@ -97,6 +102,7 @@ class CommandUtils
   # and optionally:
   # +:stdout_prefix+:: Prefix to use for all stdout messages.
   # +:stderr_prefix+:: Prefix to use for all stderr messages.
+  # Raises CommandUtils::StatusError class exception if command execution is not successfull.
   def logger_exec options
     each_line do |stream, data|
       level = options["#{stream}_level".to_sym]
@@ -115,14 +121,9 @@ class CommandUtils
 
   private
 
-  # Spawn a new process, yield given block, then process its status.
-  def run
-    spawn
-    yield
-    process_status
-  end
-
-  # Process.spawn a new process.
+  # Process.spawn a new process with @env and @command.
+  #
+  # Sets @pid, @stdout_write and @stderr_write.
   def spawn
     @stdout_read, @stdout_write = IO.pipe
     @stderr_read, @stderr_write = IO.pipe
@@ -177,7 +178,7 @@ class CommandUtils
       message += " Core dump generated." if status.coredump?
       raise Signaled.new(message, status, @command)
     elsif status.stopped?
-      message = "Command was stopped with signal #{status.stopsig}."
+      message = "Command was stopped with signal #{status.stopsig}, PID=#{pid}."
       raise Stopped.new(message, status, @command)
     else
       message = "Unknown return status."
