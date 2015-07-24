@@ -1,22 +1,42 @@
 # command_utils
 
-Simple Gem to assist running external commands an processing its outputs.
+* Home: https://github.com/fornellas/command_utils/
+* RubyGems.org: https://rubygems.org/gems/command_utils
+* Documentation: http://www.rubydoc.info/gems/command_utils/
+* Bugs: https://github.com/fornellas/command_utils/issues
 
-This Gem will help you call external commands, process its stdout and stderr, to your own fit, and at the end, validate its return code.
+## Description
 
-# Example
+This gem provides a simple interface to execute external commands. You can capture both stdout / stderr, process it, and be safe that if command has not exited with 0, you will get an exception.
 
+## Install
+
+    gem install command_utils
+
+This gem uses [Semantic Versioning](http://semver.org/), so you should add to your .gemspec something like:
+```ruby
+  s.add_runtime_dependency 'command_utils', '~> 0.4', '>= 0.4.1'
+```
+
+## Examples
+
+First, require it:
 ```ruby
 require 'command_utils'
+```
 
-puts 'Execute command and send line buffered output to block:'
+### Read each line
+
+```ruby
 command = 'echo -n stdout message ; echo -n stderr message 1>&2'
 CommandUtils.each_line(command) do |stream, data|
   puts "#{stream}: #{data}"
 end
-puts
+```
 
-puts 'Execute command and send line buffered output to given logger instance:'
+## Send output to logger
+
+```ruby
 require 'logger'
 command = 'echo -n stdout message ; echo -n stderr message 1>&2'
 CommandUtils.logger_exec(
@@ -27,9 +47,11 @@ CommandUtils.logger_exec(
   stdout_prefix: 'This was output to stdout: ',
   stderr_prefix: 'This was output to stderr: ',
   )
-puts
+```
 
-puts 'Raises if command does not return 0:'
+## Raises unless 0 exit
+
+```ruby
 command = 'echo -n stdout message ; echo -n stderr message 1>&2 ; exit 3'
 begin
   CommandUtils.each_output(command) do |stream, data|
@@ -38,21 +60,4 @@ begin
 rescue
   $stderr.puts "Raised #{$!.class}: #{$!}"
 end
-
-```
-
-This should output something like:
-```
-Execute command and send output to block:
-stdout: stdout message
-stderr: stderr message
-
-Execute command and send output to given logger instance:
-I, [2015-04-02T09:47:13.083966 #17466]  INFO -- : This was output to stdout: stdout message
-E, [2015-04-02T09:47:13.084226 #17466] ERROR -- : This was output to stderr: stderr message
-
-Raises if command does not return 0:
-stdout: stdout message
-stderr: stderr message
-Raised CommandUtils::NonZeroStatus: Command exited with 3.
 ```
