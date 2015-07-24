@@ -12,10 +12,7 @@ class CommandUtils
   # Takes command in same format supported by Process#spawn.
   def initialize *args
     first = args.first
-    if first.kind_of? Hash
-      @env = args.shift
-      @command = args
-    elsif first.respond_to? :to_hash
+    if first.respond_to? :to_hash
       @env = args.shift.to_hash
       @command = args
     else
@@ -166,8 +163,7 @@ class CommandUtils
 
   # Wait for process termination, then process its status.
   def process_status
-    flags = Process::WNOHANG|Process::WUNTRACED
-    pid, status = Process.wait2(@pid, flags)
+    pid, status = Process.wait2(@pid)
     if status.exited?
       unless status.exitstatus == 0
         message = "Command exited with #{status.exitstatus}."
