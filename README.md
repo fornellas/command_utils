@@ -1,5 +1,7 @@
 # command_utils
 
+[![Build Status](https://travis-ci.org/fornellas/command_utils.svg?branch=master)]https://travis-ci.org/fornellas/command_utils)
+
 * Home: https://github.com/fornellas/command_utils/
 * RubyGems.org: https://rubygems.org/gems/command_utils
 * Documentation: http://www.rubydoc.info/gems/command_utils/
