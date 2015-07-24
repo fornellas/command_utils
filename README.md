@@ -36,7 +36,7 @@ CommandUtils.each_line(command) do |stream, data|
 end
 ```
 
-## Send output to logger
+### Send output to logger
 
 ```ruby
 require 'logger'
@@ -51,7 +51,7 @@ CommandUtils.logger_exec(
   )
 ```
 
-## Raises unless 0 exit
+### Raises unless 0 exit
 
 ```ruby
 command = 'echo -n stdout message ; echo -n stderr message 1>&2 ; exit 3'
