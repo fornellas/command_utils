@@ -99,7 +99,6 @@ DEPENDENCIES
   guard-rspec (~> 4.6)
   rake (~> 10.4, >= 10.4.2)
   rspec (~> 3.3)
-  simplecov (~> 0.10)
 
 BUNDLED WITH
    1.10.5
