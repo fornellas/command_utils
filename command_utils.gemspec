@@ -10,6 +10,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'guard-rspec', '~>4.6'
   s.add_development_dependency 'simplecov', '~>0.10'
   s.add_development_dependency 'rake', '~>10.4', '>= 10.4.2'
+  s.add_development_dependency 'coveralls'
   s.files       = Dir.glob('lib/**/*.rb')
   s.homepage    = 'https://github.com/fornellas/command_utils'
   s.license     = 'GPL'
