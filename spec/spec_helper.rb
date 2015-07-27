@@ -1,7 +1,7 @@
 # simplecov
-$ERROR_INFO = nil
-require 'simplecov'
-SimpleCov.start
+# $ERROR_INFO = nil
+# require 'simplecov'
+# SimpleCov.start
 
 # coveralls
 require 'coveralls'
