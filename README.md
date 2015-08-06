@@ -1,6 +1,10 @@
 # command_utils
 
 [![Build Status](https://travis-ci.org/fornellas/command_utils.svg?branch=master)](https://travis-ci.org/fornellas/command_utils)
+[![Gem Version](https://badge.fury.io/rb/command_utils.svg)](http://badge.fury.io/rb/command_utils)
+[![GitHub issues](https://img.shields.io/github/issues/fornellas/command_utils.svg)](https://github.com/fornellas/command_utils/issues)
+[![GitHub license](https://img.shields.io/badge/license-GPLv3-blue.svg)](https://raw.githubusercontent.com/fornellas/command_utils/master/LICENSE)
+[![Downloads](http://ruby-gem-downloads-badge.herokuapp.com/command_utils?type=total)](https://rubygems.org/gems/command_utils)
 
 * Home: https://github.com/fornellas/command_utils/
 * RubyGems.org: https://rubygems.org/gems/command_utils
