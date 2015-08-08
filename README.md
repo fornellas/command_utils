@@ -1,6 +1,7 @@
 # command_utils
 
 [![Build Status](https://travis-ci.org/fornellas/command_utils.svg?branch=master)](https://travis-ci.org/fornellas/command_utils)
+[![Inline docs](http://inch-ci.org/github/fornellas/command_utils.svg?branch=master)](http://inch-ci.org/github/fornellas/command_utils)
 [![Gem Version](https://badge.fury.io/rb/command_utils.svg)](http://badge.fury.io/rb/command_utils)
 [![GitHub issues](https://img.shields.io/github/issues/fornellas/command_utils.svg)](https://github.com/fornellas/command_utils/issues)
 [![GitHub license](https://img.shields.io/badge/license-GPLv3-blue.svg)](https://raw.githubusercontent.com/fornellas/command_utils/master/LICENSE)
