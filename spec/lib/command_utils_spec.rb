@@ -122,11 +122,22 @@ RSpec.describe CommandUtils do
           )
       end
 
+      it 'calls #each_output' do
+        c = CommandUtils.new('echo')
+        expect(c).to receive(:each_output).and_call_original
+        c.each_line{}
+      end
+
     end
 
     context '#logger_exec' do
 
       let(:logger){instance_double(Logger)}
+
+      before(:example) do
+        allow(logger).to receive(:info)
+        allow(logger).to receive(:error)
+      end
 
       it 'logs stdout' do
         expect(logger).to receive(:info).with('stdout')
@@ -165,6 +176,16 @@ RSpec.describe CommandUtils do
           stderr_level: :error,
           stdout_prefix: 'stdout: ',
           stderr_prefix: 'stderr: ',
+          )
+      end
+
+      it 'calls #each_output' do
+        c = CommandUtils.new('echo -n stdout ; echo -n stderr 1>&2')
+        expect(c).to receive(:each_output).and_call_original
+        c.logger_exec(
+          logger: logger,
+          stdout_level: :info,
+          stderr_level: :error,
           )
       end
 
