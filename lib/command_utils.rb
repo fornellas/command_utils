@@ -28,24 +28,27 @@ class CommandUtils
   # Raises CommandUtils::StatusError class exception if command execution is not successfull.
   def each_output &block # :yields: stream, data
     spawn
-    loop do
-      io_list = [@stdout_read, @stderr_read].keep_if{|io| not io.closed?}
-      break if io_list.empty?
-      IO.select(io_list).first.each do |io|
-        if io.eof?
-          io.close
-          next
+    begin
+      loop do
+        io_list = [@stdout_read, @stderr_read].keep_if{|io| not io.closed?}
+        break if io_list.empty?
+        IO.select(io_list).first.each do |io|
+          if io.eof?
+            io.close
+            next
+          end
+          label = case io
+          when @stdout_read
+            :stdout
+          when @stderr_read
+            :stderr
+          end
+          yield label, io.read
         end
-        label = case io
-        when @stdout_read
-          :stdout
-        when @stderr_read
-          :stderr
-        end
-        yield label, io.read
       end
+    ensure
+      process_status
     end
-    process_status
   end
 
   #  call-seq:

@@ -68,6 +68,15 @@ RSpec.describe CommandUtils do
         end.to raise_error(CommandUtils::StatusError)
       end
 
+      it 'raises exception if given block breaks' do
+        c = CommandUtils.new('echo stdout ; exit 1')
+        expect do
+          c.each_output do |stream, data|
+            break
+          end
+        end.to raise_error(CommandUtils::StatusError)
+      end
+
     end
 
   end
