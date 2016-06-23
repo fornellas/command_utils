@@ -1,3 +1,11 @@
-require 'rspec/core/rake_task'
-RSpec::Core::RakeTask.new(:spec)
-task :default => :spec
+require 'bundler'
+Bundler.require
+
+require 'gem_polisher'
+GemPolisher.new
+
+desc "Run RSpec"
+task :rspec do
+  sh 'rspec --format=progress'
+end
+task test: [:rspec]
