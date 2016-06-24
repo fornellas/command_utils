@@ -9,3 +9,5 @@ task :rspec do
   sh 'rspec --format=progress'
 end
 task test: [:rspec]
+
+task default: [:test]
