@@ -1,5 +1,6 @@
 require 'command_utils'
 require 'logger'
+require 'timeout'
 
 RSpec.describe CommandUtils do
 
@@ -68,13 +69,17 @@ RSpec.describe CommandUtils do
         end.to raise_error(CommandUtils::StatusError)
       end
 
-      it 'raises exception if given block breaks' do
-        c = CommandUtils.new('echo stdout ; exit 1')
-        expect do
-          c.each_output do |stream, data|
+      it 'outputs data as soon as it arrives' do
+        output_data = '134'
+        c = CommandUtils.new("echo -n #{output_data} ; sleep 999999999999")
+        stdout = ''
+        Timeout.timeout(1) do
+          c.each_output do |stream, read_data|
+            next unless stream == :stdout
+            expect(read_data).to eq(output_data)
             break
           end
-        end.to raise_error(CommandUtils::StatusError)
+        end
       end
 
     end

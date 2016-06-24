@@ -43,12 +43,22 @@ class CommandUtils
           when @stderr_read
             :stderr
           end
-          yield label, io.read
+          buffer = ''
+          loop do
+            begin
+              buffer += io.read_nonblock(io.stat.blksize)
+            rescue EOFError
+              io.close
+              break
+            rescue IO::EAGAINWaitReadable
+              break
+            end
+          end
+          yield label, buffer
         end
       end
-    ensure
-      process_status
     end
+    process_status
   end
 
   #  call-seq:
