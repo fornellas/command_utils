@@ -9,7 +9,7 @@ class CommandUtils
   #  call-seq:
   #    new([env,] command...)
   #
-  # Takes command in same format supported by Process#spawn.
+  # Takes command in same format supported by Process.spawn.
   def initialize *args
     first = args.first
     if first.respond_to? :to_hash
