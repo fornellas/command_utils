@@ -54,6 +54,7 @@ class CommandUtils
               break
             end
           end
+          STDERR.puts "#{label}: '#{buffer}'" if self.class.debug
           yield label, buffer
         end
       end
@@ -129,6 +130,12 @@ class CommandUtils
     self.new(*args).logger_exec(options)
   end
 
+  class << self
+    # Output command and its output to STDERR.
+    attr_accessor :debug
+    debug = false
+  end
+
   private
 
   # Process.spawn a new process with @env and @command.
@@ -142,6 +149,7 @@ class CommandUtils
     else
       @command
     end
+    STDERR.puts "Executing: '#{@command.first}'" if self.class.debug
     @pid = Process.spawn(
       *spawn_args,
       in: :close,
