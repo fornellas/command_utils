@@ -152,9 +152,9 @@ class CommandUtils
     STDERR.puts "Executing: '#{@command.first}'" if self.class.debug
     @pid = Process.spawn(
       *spawn_args,
-      in: :close,
-      out: @stdout_write.fileno,
-      err: @stderr_write.fileno,
+      in:           :close,
+      out:          @stdout_write.fileno,
+      err:          @stderr_write.fileno,
       close_others: true,
       )
     @stdout_write.close
